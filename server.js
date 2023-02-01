@@ -41,6 +41,7 @@ function authenticateToken(req, res, next) {
 }
 
 app.post('/createRoom', authenticateToken, (rec,res) => {
+  console.log('createRoom');
   const roomId = v4()
   res.send({status:'ok', roomId, url:`http://localhost:3000/room/${roomId}`})
 })
