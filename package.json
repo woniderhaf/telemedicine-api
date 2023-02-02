@@ -11,6 +11,8 @@
     "express": "^4.17.1",
     "freeice": "^2.2.2",
     "jsonwebtoken": "^9.0.0",
+    "mongoose": "^6.9.0",
+    "mongoose-timestamp": "^0.6.0",
     "react-scripts": "4.0.3",
     "socket.io": "^4.0.0",
     "uuid": "^8.3.2",
@@ -20,7 +22,6 @@
     "start:dev": "npx nodemon server.js",
     "start": "node server.js"
   },
-
   "browserslist": {
     "production": [
       ">0.2%",

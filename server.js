@@ -4,9 +4,12 @@ const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const cors = require('cors')
+const Session = require('./src/models/Session')
 const {version, validate,v4} = require('uuid');
 const jwt = require('jsonwebtoken')
 const dotenv = require('dotenv')
+// db
+const mongoose = require('mongoose')
 
 dotenv.config()
 
@@ -25,8 +28,7 @@ function generateAccessToken(username) {
 }
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization']
-  console.log({authHeader});
-  const token = authHeader && authHeader.split(' ')[1]
+  const token = authHeader 
 
   if (token == null) return res.sendStatus(401)
 
@@ -41,11 +43,14 @@ function authenticateToken(req, res, next) {
   })
 }
 
-app.post('/createRoom', authenticateToken, (rec,res) => {
-  console.log('createRoom');
+app.post('/createRoom', authenticateToken, async (req,res) => {
+  const body = req.body
   const roomId = v4()
-  res.send({status:'ok', roomId, url:`http://localhost:3000/room/${roomId}`})
+  res.send({status:'ok', roomId, url:`http://localhost:3000/room/${roomId}`, ...body})
+  const newSession = new Session({roomId,url:`http://localhost:3000/room/${roomId}`, data:body})
+  await newSession.save()
 })
+
 
 
 function shareRoomsInfo() {
@@ -57,7 +62,7 @@ function shareRoomsInfo() {
 io.on('connection', socket => {
   shareRoomsInfo();
 
-  socket.on(ACTIONS.JOIN, config => {
+  socket.on(ACTIONS.JOIN, async config => {
     const {room: roomID} = config;
     console.log('join');
     const {rooms: joinedRooms} = socket;
@@ -67,7 +72,11 @@ io.on('connection', socket => {
     }
 
     const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || []);
-        
+
+    const roomData = await Session.findOne({roomId:roomID})
+
+    socket.emit(ACTIONS.ROOM_DATA, roomData)
+    
     if (clients.length > 1) {
       socket.emit('ROOM-FULL', {code:501})
       return console.warn(`room ${roomID} full`);
@@ -91,16 +100,18 @@ io.on('connection', socket => {
     shareRoomsInfo();
   });
 
-  function leaveRoom() {
+  function  leaveRoom(conf) {
+    console.log({conf});
     const {rooms} = socket;
-    console.log({rooms});
     Array.from(rooms)
       // LEAVE ONLY CLIENT CREATED ROOM
       .filter(roomID => validate(roomID) && version(roomID) === 4)
-      .forEach(roomID => {
+      .forEach( async roomID => {
 
         const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || []);
-
+        if(clients.length < 2) {
+          await Session.findOneAndDelete({roomId: roomID})
+        }
         clients
           .forEach(clientID => {
           io.to(clientID).emit(ACTIONS.REMOVE_PEER, {
@@ -111,10 +122,10 @@ io.on('connection', socket => {
             peerID: clientID,
           });
         });
-
         socket.leave(roomID);
       });
-
+    
+    
     shareRoomsInfo();
   }
 
@@ -137,14 +148,22 @@ io.on('connection', socket => {
 
 });
 
-const publicPath = path.join(__dirname, 'build');
+// const publicPath = path.join(__dirname, 'build');
 
-app.use(express.static(publicPath));
+// app.use(express.static(publicPath));
 
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(publicPath, 'index.html'));
-// });
 
-server.listen(PORT, () => {
+server.listen(process.env.PORT, () => {
   console.log('Server Started!, port',PORT)
+  mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+
+})
+
+const database = mongoose.connection
+database.on('error', (err) => {
+  console.log({err})
+})
+
+database.once('open', () => {
+  console.log(`Mongo server start on port:: ${process.env.PORT}`)
 })
