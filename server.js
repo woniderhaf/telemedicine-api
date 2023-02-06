@@ -48,9 +48,10 @@ function authenticateToken(req, res, next) {
 app.post('/createRoom', authenticateToken, async (req,res) => {
   const body = req.body
   const roomId = v4()
-  res.send({status:'ok', roomId, url:`http://localhost:3000/room/${roomId}`, ...body})
-  // const newSession = new Session({roomId,url:`http://localhost:3000/room/${roomId}`, data:body})
-  // await newSession.save()
+  const url = `https://woniderhaf.github.io/medicine-desktop/room/${roomId}`
+  res.send({status:'ok', roomId, url, ...body})
+  const newSession = new Session({roomId,url, data:body})
+  await newSession.save()
 })
 
 
@@ -76,9 +77,9 @@ io.on('connection', socket => {
 
     const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || []);
 
-    // const roomData = await Session.findOne({roomId:roomID})
+    const roomData = await Session.findOne({roomId:roomID})
 
-    // socket.emit(ACTIONS.ROOM_DATA, roomData)
+    socket.emit(ACTIONS.ROOM_DATA, roomData)
     
     if (clients.length > 1) {
       socket.emit('ROOM-FULL', {code:501})
@@ -158,15 +159,15 @@ io.on('connection', socket => {
 
 server.listen(process.env.PORT, () => {
   console.log('Server Started!, port',PORT)
-  // mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 })
 
-// const database = mongoose.connection
-// database.on('error', (err) => {
-//   console.log({err})
-// })
+const database = mongoose.connection
+database.on('error', (err) => {
+  console.log({err})
+})
 
-// database.once('open', () => {
-//   console.log(`Mongo server start on port:: ${process.env.PORT}`)
-// })
+database.once('open', () => {
+  console.log(`Mongo server start on port:: ${process.env.PORT}`)
+})
