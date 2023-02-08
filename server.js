@@ -1,5 +1,6 @@
 const path = require('path');
 const express = require('express');
+const bodyParser = require('body-parser')
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
@@ -20,6 +21,7 @@ function getClientRooms() {
   const {rooms} = io.sockets.adapter;
   return Array.from(rooms.keys()).filter(roomID => validate(roomID) && version(roomID) === 4);
 }
+app.use(bodyParser.urlencoded())
 app.use(cors())
 app.use(express.json())
 
@@ -49,9 +51,15 @@ app.post('/createRoom', authenticateToken, async (req,res) => {
   const body = req.body
   const roomId = v4()
   const url = `https://woniderhaf.github.io/medicine-desktop/room/${roomId}`
-  res.send({status:'ok', roomId, url, ...body})
-  const newSession = new Session({roomId,url, data:body})
+  const newSession = new Session({roomId,url, ...body})
   await newSession.save()
+  res.send({roomId, url})
+
+})
+app.post('/getFile', async (req,res) => {
+  const data = req.body
+  console.log(data);
+  res.send(data)
 })
 
 

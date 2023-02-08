@@ -12,9 +12,27 @@ const Session = new mongoose.Schema({
   roomId: {
     type:String
   },
-  data:{
-    type: Object
-  }
+  telemed_discussion_id:{
+    type:Number
+  },
+  patient_id:{
+    type:String
+  },
+  employee_id:{
+    type:String
+  },
+  opened_at:{
+    type:String
+  },
+  patient_name:{
+    type:String
+  },
+  employee_name:{
+    type:String
+  },
+  medmis_upload_files_url:{
+    type:String
+  },
 })
 
 Session.plugin(timestamp)
