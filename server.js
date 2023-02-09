@@ -50,17 +50,13 @@ function authenticateToken(req, res, next) {
 app.post('/createRoom', authenticateToken, async (req,res) => {
   const body = req.body
   const roomId = v4()
-  const url = `https://woniderhaf.github.io/medicine-desktop/room/${roomId}`
+  const url = `https://testcall.medmis.ru/room/${roomId}`
   const newSession = new Session({roomId,url, ...body})
   await newSession.save()
   res.send({roomId, url})
 
 })
-app.post('/getFile', async (req,res) => {
-  const data = req.body
-  console.log(data);
-  res.send(data)
-})
+
 
 
 
