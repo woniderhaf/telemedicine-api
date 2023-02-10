@@ -48,12 +48,21 @@ function authenticateToken(req, res, next) {
 }
 
 app.post('/createRoom', authenticateToken, async (req,res) => {
-  const body = req.body
-  const roomId = v4()
-  const url = `https://testcall.medmis.ru/room/${roomId}`
-  const newSession = new Session({roomId,url, ...body})
-  await newSession.save()
-  res.send({roomId, url})
+  try {
+    const body = req.body
+    const roomId = v4()
+    const url = `https://testcall.medmis.ru/room/${roomId}`
+    const newSession = new Session({roomId,url, ...body})
+    const result = await newSession.save()
+    if(result) {
+      res.send({status:'ok', roomId, url})
+    }else (
+      res.send({status:'error'})
+    )
+  } catch (error) {
+    res.send({status:'error'})
+  }
+
 
 })
 
