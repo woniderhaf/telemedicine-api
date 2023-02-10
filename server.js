@@ -108,27 +108,28 @@ io.on('connection', socket => {
     shareRoomsInfo();
   });
 
-  function  leaveRoom(conf) {
-    console.log({conf});
+  function  leaveRoom() {
+    // console.log({conf});
     const {rooms} = socket;
     Array.from(rooms)
       // LEAVE ONLY CLIENT CREATED ROOM
       .filter(roomID => validate(roomID) && version(roomID) === 4)
       .forEach( async roomID => {
-
+        console.log({roomID});
         const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || []);
         if(clients.length < 2) {
-          await Session.findOneAndDelete({roomId: roomID})
+          // await Session.findOneAndDelete({roomId: roomID})
         }
+        io.to(roomID).emit(ACTIONS.CALL_END)
         clients
           .forEach(clientID => {
           io.to(clientID).emit(ACTIONS.REMOVE_PEER, {
             peerID: socket.id,
           });
 
-          socket.emit(ACTIONS.REMOVE_PEER, {
-            peerID: clientID,
-          });
+          // socket.emit(ACTIONS.REMOVE_PEER, {
+          //   peerID: clientID,
+          // });
         });
         socket.leave(roomID);
       });
@@ -137,7 +138,7 @@ io.on('connection', socket => {
     shareRoomsInfo();
   }
 
-  socket.on(ACTIONS.LEAVE, config => leaveRoom(config));
+  socket.on(ACTIONS.LEAVE,leaveRoom);
   socket.on('disconnect', leaveRoom);
 
   socket.on(ACTIONS.RELAY_SDP, ({peerID, sessionDescription}) => {

@@ -9,6 +9,7 @@ const ACTIONS = {
   ICE_CANDIDATE: 'ice-candidate',
   SESSION_DESCRIPTION: 'session-description',
   ROOM_DATA: 'room-data',
+  CALL_END: 'call-end'
 };
 
 module.exports = ACTIONS;
