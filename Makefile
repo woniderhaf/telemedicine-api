@@ -2,7 +2,7 @@ PROJECTNAME = telemedicine-api
 PORT = 4444
 
 start:
-	docker build -t $(PROJECTNAME) -f deployments/Dockerfile .
+	docker build -t $(PROJECTNAME) -f Dockerfile .
 	docker run --name $(PROJECTNAME) -d --restart=always -p $(PORT):$(PORT) $(PROJECTNAME)
 
 stop:
