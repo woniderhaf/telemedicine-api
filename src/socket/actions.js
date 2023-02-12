@@ -9,7 +9,9 @@ const ACTIONS = {
   ICE_CANDIDATE: 'ice-candidate',
   SESSION_DESCRIPTION: 'session-description',
   ROOM_DATA: 'room-data',
-  CALL_END: 'call-end'
+  CALL_END: 'call-end',
+  ADD_FILE: 'add-file',
+  SEND_FILE: 'send-file',
 };
 
 module.exports = ACTIONS;
