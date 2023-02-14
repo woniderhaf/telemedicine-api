@@ -12,6 +12,7 @@ const ACTIONS = {
   CALL_END: 'call-end',
   ADD_FILE: 'add-file',
   SEND_FILE: 'send-file',
+  GET_TIME: 'get-time'
 };
 
 module.exports = ACTIONS;

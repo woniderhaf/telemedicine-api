@@ -57,9 +57,8 @@ app.use(express.json())
       const body = req.body
       const roomId = v4()
       const url = `https://testcall.medmis.ru/room/${roomId}`
-      // const newSession = new Session({roomId,url, ...body})
-      // const result = await newSession.save()
-      const result = true
+      const newSession = new Session({roomId,url, ...body})
+      const result = await newSession.save()
       if(result) {
         res.send({status:'ok', roomId, url})
       }else (
@@ -75,9 +74,9 @@ app.use(express.json())
   app.get('/getRooms', authenticateToken, async (req,res) => {
     try {
     
-      // const sessions =  await Session.find()
-      // const rooms = sessions.map(v => v.roomId)
-      const rooms = []
+      const sessions =  await Session.find()
+      const rooms = sessions.map(v => v.roomId)
+      // const rooms = []
       res.send(rooms)
     } catch (error) {
       
@@ -120,15 +119,16 @@ app.use(express.json())
 
       const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || []);
 
-      // const roomData = await Session.findOne({roomId:roomID})
+      const roomData = await Session.findOne({roomId:roomID})
 
-      // socket.emit(ACTIONS.ROOM_DATA, roomData)
-      
+      socket.emit(ACTIONS.ROOM_DATA, roomData)
+
       if (clients.length > 1) {
         socket.emit('ROOM-FULL', {code:501})
         return console.warn(`room ${roomID} full`);
       } else {
         socket.emit('ROOM-FULL', {code:200})
+
       }
 
       clients.forEach(clientID => {
@@ -156,7 +156,7 @@ app.use(express.json())
           console.log({roomID});
           const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || []);
           if(clients.length < 2) {
-            // await Session.findOneAndDelete({roomId: roomID})
+            await Session.findOneAndDelete({roomId: roomID})
           }
           io.to(roomID).emit(ACTIONS.CALL_END)
           clients
@@ -202,14 +202,14 @@ app.use(express.json())
 
   server.listen(process.env.PORT, () => {
     console.log('Server Started!, port',PORT)
-    // mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   })
 
-// const database = mongoose.connection
-//   database.on('error', (err) => {
-//     console.log({err})
-//   })
+const database = mongoose.connection
+  database.on('error', (err) => {
+    console.log({err})
+  })
 
-//   database.once('open', () => {
-//     console.log(`Mongo server start on port:: ${process.env.PORT}`)
-//   })
+  database.once('open', () => {
+    console.log(`Mongo server start on port:: ${process.env.PORT}`)
+  })
